@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from "@angular/core";
+import { Subject } from "rxjs";
 import { LoginService } from "src/app/login/login.component.service";
 import { IUser, IMessage } from "src/assets/interfaces/shared.interface";
 import { Message, User } from "../chat.component.model";
@@ -16,8 +17,12 @@ export class ChatAppComponent implements OnInit {
   public messages: IMessage[] = [];
   public selectedUser: IUser;
   public chatRoomId: string;
+  public isRefreshing = false;
 
-  MESSAGE_SIZE = 15;
+  messageChanged = new Subject<any>();
+  messageChanged$ = this.messageChanged.asObservable();
+  
+  MESSAGE_SIZE = 20;
   hasPrevious = false;
   currentPageNo = 0;
   
@@ -58,6 +63,15 @@ export class ChatAppComponent implements OnInit {
     this.chatService.sendMessage(msg);
   }
 
+  public handleRequestPreviousMessage(message: string){
+    if(this.hasPrevious && !this.isRefreshing) {
+      this.isRefreshing = true;
+      this.cdr.markForCheck();
+      this.retrievePreviousMessage(this.currentPageNo+1);
+
+    }
+  }
+
   /**
    * When user selected, will connected to a chat room. 
    * @param user 
@@ -81,7 +95,6 @@ export class ChatAppComponent implements OnInit {
   private messageReceivedSetup(){
     this.retrievePreviousMessage();
     this.chatService.messageSource$.subscribe(res=>{
-
       const msgTemp = JSON.parse(res);
       let msg = new Message();
       msg.text = msgTemp.content;
@@ -97,12 +110,14 @@ export class ChatAppComponent implements OnInit {
         }
       ];
       this.cdr.markForCheck();
+      this.messageChanged.next();
     });
   }
 
   retrievePreviousMessage=(pageNo=0)=>{
     this.chatService.getPreviousMessage(parseInt(this.chatRoomId), this.MESSAGE_SIZE, pageNo)
       .then(res =>{
+        this.isRefreshing = false;
         this.currentPageNo = pageNo;
         this.hasPrevious = res['hasNext'];
         const historyMessages = res['messageList'];
@@ -121,7 +136,6 @@ export class ChatAppComponent implements OnInit {
           ]
         }
         this.cdr.markForCheck();
-        console.log(res);
       })
 
 

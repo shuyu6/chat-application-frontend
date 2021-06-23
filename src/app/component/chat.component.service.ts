@@ -15,19 +15,19 @@ export class ChatService {
     private stompClient = null;
     private chatRoomId;
     
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {
+    }
 
     public connect(chatRoomId: string) {
-        this.chatRoomId = chatRoomId;
+        //todo: prevent subscibe to multiple time to the same endpoint ? 
         const socket = new SockJS(this.urlWebSocket);
         this.stompClient = Stomp.over(socket);
-    
-        const _this = this;
+        this.chatRoomId = chatRoomId;
         this.stompClient.connect({}, this.subscription);
     }
 
     private subscription=(frame)=>{
-        console.log('Connected: ' + frame);
+        // console.log('Connected: ' + frame);
         this.stompClient.subscribe(`/user/${this.chatRoomId}/queue/messages`, this.queueMessageCallbackFunction);
     }
     private queueMessageCallbackFunction=(res)=>{
