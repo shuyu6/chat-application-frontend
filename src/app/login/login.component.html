@@ -1,0 +1,11 @@
+<div class="container">
+    <h2>Login</h2>
+    <div>
+        <form [formGroup]="inputForm" (ngSubmit)="onSubmit()" novalidate>
+            <input type="text" class="form-control" formControlName="username" [(ngModel)]="username" placeholder="Username" required style="margin-top:10px"/>
+            <button type="submit" [disabled]="inputForm.pristine || inputForm.invalid" class="btn btn-outline-secondary" style="margin-top:10px">
+                Start Chat
+            </button>
+        </form>
+    </div>
+</div>

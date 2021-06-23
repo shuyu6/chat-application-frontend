@@ -1,0 +1,23 @@
+<div class="main">
+  <header>
+    <h4>Chat</h4>
+  </header>
+  <div class="chat-holder">
+    <div class="chat-room-list">
+      <users-list
+        [usersList]="usersList"
+        (onUserSelect)="handleUserSelect($event)"
+      ></users-list>
+    </div>
+    <div class="chat-window">
+      <div *ngIf="!chatRoomId"> Double click the user list to open chat room </div>
+      <chat-window
+        *ngIf="chatRoomId"
+        [chatRoomId]="chatRoomId"
+        [selectedUser]="selectedUser"
+        [messages]="messages"
+        (onMessage)="handleMessage($event)"
+      ></chat-window>
+    </div>
+  </div>
+</div>

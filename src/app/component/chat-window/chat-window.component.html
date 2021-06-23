@@ -1,0 +1,28 @@
+<div>Chat Room ID: {{chatRoomId}}</div>
+<ul class="message-list" #scrollframe>
+  <li *ngFor="let message of messages" class="message-list-item">
+    <app-message [message]="message"></app-message>
+  </li>
+</ul>
+
+<form [formGroup]="inputForm" (ngSubmit)="onSubmit()" novalidate>
+  <div class="input-group">
+    <input
+      type="text"
+      class="form-control"
+      formControlName="text"
+      placeholder="Message"
+      required
+      #text
+    />
+    <div class="input-group-append">
+      <button
+        type="submit"
+        [disabled]="inputForm.pristine || inputForm.invalid"
+        class="btn btn-outline-secondary"
+      >
+        Send
+      </button>
+    </div>
+  </div>
+</form>
