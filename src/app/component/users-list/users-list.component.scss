@@ -1,9 +1,12 @@
-ul.list-group {
+.list-group {
   height: 100%;
   overflow: auto;
-  li.list-group-item {
+  .list-group-item {
     &:hover {
       cursor: pointer;
+    }
+    .list-group-item-notification{
+      font-size: 12px;
     }
   }
 }

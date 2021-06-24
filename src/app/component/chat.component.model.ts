@@ -4,6 +4,7 @@ export class User implements IUser {
     name: string;
     id: number;
     isCurrent: boolean;
+    notification: number = 0;
 }
 
 export class Message implements IMessage {

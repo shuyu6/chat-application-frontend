@@ -1,11 +1,12 @@
-<ul class="list-group" *ngIf="usersList.length">
-  <li
+<div class="list-group" *ngIf="usersList.length">
+  <div
     *ngFor="let user of usersList"
     class="list-group-item"
     [class.active]="user.isCurrent"
     (dblclick)="selectUser(user)"
     title="Click twice to select"
   >
-    {{ user.name }}
-  </li>
-</ul>
+    {{ user.name }} <br>
+    <span *ngIf="user.notification>0" class="list-group-item-notification">{{user.notification}} New Message</span>
+  </div>
+</div>

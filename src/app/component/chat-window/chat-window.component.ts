@@ -21,12 +21,11 @@ import { IMessage, IUser } from "../../../assets/interfaces/shared.interface";
 })
 export class ChatWindowComponent{
   @ViewChild('scrollframe', {static: false}) scrollFrame: ElementRef;
-  @ViewChildren('messagesList') itemElements: QueryList<any>;
+  @ViewChildren('messagesList') messageListView: QueryList<any>;
   
   @Input() chatRoomId: string;
   @Input() selectedUser: IUser;
   @Input() messages: IMessage[];
-  @Input() messageReceivedSubsriber: Subject<any>;
   @Input() isRefreshing: boolean;
   @Output() onMessage = new EventEmitter<string>();
   @Output() onRequestPreviousMessage = new EventEmitter<string>();
@@ -42,7 +41,7 @@ export class ChatWindowComponent{
 
   ngAfterViewInit(){
     this.scrollContainer = this.scrollFrame.nativeElement;  
-    this.itemElements.changes.subscribe(v => { 
+    this.messageListView.changes.subscribe(v => { 
       this.onItemElementsChanged();
     });
   }

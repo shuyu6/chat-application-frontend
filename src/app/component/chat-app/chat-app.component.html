@@ -16,10 +16,9 @@
         [chatRoomId]="chatRoomId"
         [selectedUser]="selectedUser"
         [messages]="messages"
-        [messageReceivedSubsriber]="messageChanged$"
         [isRefreshing]="isRefreshing"
         (onMessage)="handleMessage($event)"
-        (onRequestPreviousMessage)="handleRequestPreviousMessage($event)"
+        (onRequestPreviousMessage)="handleRequestPreviousMessage()"
       ></chat-window>
     </div>
   </div>

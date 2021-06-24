@@ -2,6 +2,7 @@ export interface IUser {
   name: string;
   id: number;
   isCurrent: boolean;
+  notification: number;
 }
 
 export interface IMessage {

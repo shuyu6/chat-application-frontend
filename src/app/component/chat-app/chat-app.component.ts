@@ -19,21 +19,18 @@ export class ChatAppComponent implements OnInit {
   public chatRoomId: string;
   public isRefreshing = false;
 
-  messageChanged = new Subject<any>();
-  messageChanged$ = this.messageChanged.asObservable();
-  
   MESSAGE_SIZE = 20;
   hasPrevious = false;
   currentPageNo = 0;
   
   constructor(private loginService: LoginService, 
     private chatService: ChatService,
-    private cdr: ChangeDetectorRef){}
+    private cdr: ChangeDetectorRef) {}
   
   ngOnInit() {
     this.initUserList();
+    this.chatServiceSetup();
   }
-
   private initUserList(){
     this.loginService.userList().then(res=>{
       for(let user of res){
@@ -42,58 +39,18 @@ export class ChatAppComponent implements OnInit {
         temp.isCurrent = user.userId == sessionStorage.getItem("user_id");
         temp.name = user.username;
 
-
         this.usersList = [
           ...this.usersList,
           {...temp},
         ]
-
         
       }
       this.cdr.markForCheck();
     });
   }
 
-  public handleMessage(text: string) {
-    const msg: any = {
-      content: text,
-      senderId: sessionStorage.getItem("user_id"),
-      chatRoomId: this.chatRoomId
-    };
-    this.chatService.sendMessage(msg);
-  }
-
-  public handleRequestPreviousMessage(message: string){
-    if(this.hasPrevious && !this.isRefreshing) {
-      this.isRefreshing = true;
-      this.cdr.markForCheck();
-      this.retrievePreviousMessage(this.currentPageNo+1);
-
-    }
-  }
-
-  /**
-   * When user selected, will connected to a chat room. 
-   * @param user 
-   */
-  public handleUserSelect(user: IUser) {  
-    let senderId: number = parseInt(sessionStorage.getItem("user_id"));
-    this.selectedUser = user;
-    this.messages = [];
-    this.cdr.markForCheck();
-
-    this.chatService.getChatRoomId(senderId, user.id).then(res=>{
-      this.chatRoomId = res['chatRoomId'];
-      this.cdr.markForCheck();
-      this.chatService.connect(this.chatRoomId);
-      this.messageReceivedSetup();
-    })
-  }
-  /**
-   * Subscibe to message source 
-   */
-  private messageReceivedSetup(){
-    this.retrievePreviousMessage();
+  private chatServiceSetup(){
+    this.chatService.connect();
     this.chatService.messageSource$.subscribe(res=>{
       const msgTemp = JSON.parse(res);
       let msg = new Message();
@@ -110,8 +67,65 @@ export class ChatAppComponent implements OnInit {
         }
       ];
       this.cdr.markForCheck();
-      this.messageChanged.next();
     });
+
+    this.chatService.notificationSource.subscribe(res=>{
+      const msgTemp = JSON.parse(res);
+      let user = this.usersList.find(u=> u.id == msgTemp.senderId);
+      if(!this.chatRoomId || this.chatRoomId!=msgTemp.chatRoomId){
+        user.notification += 1;
+      }
+      this.usersList = [...this.usersList];
+      this.cdr.markForCheck();
+    })
+  }
+
+  public handleMessage(text: string) {
+    const msg: any = {
+      content: text,
+      senderId: sessionStorage.getItem("user_id"),
+      chatRoomId: this.chatRoomId
+    };
+    this.chatService.sendMessage(msg);
+  }
+
+  public handleRequestPreviousMessage(){
+    if(this.hasPrevious && !this.isRefreshing) {
+      this.isRefreshing = true;
+      this.cdr.markForCheck();
+      this.retrievePreviousMessage(this.currentPageNo+1);
+    }
+  }
+
+  /**
+   * When user selected, will connected to a chat room. 
+   * @param user 
+   */
+  public handleUserSelect(user: IUser) {  
+    let senderId: number = parseInt(sessionStorage.getItem("user_id"));
+    this.selectedUser = user;
+    this.selectedUser.notification = 0;
+    this.usersList = [...this.usersList];
+
+    this.onChatRoomChanged();
+
+    this.chatService.getChatRoomId(senderId, user.id).then(res=>{
+      this.isRefreshing = false;
+      this.chatRoomId = res['chatRoomId'];
+      this.cdr.markForCheck();
+      this.chatService.subscribeChatRoomSocket(this.chatRoomId);
+      this.retrievePreviousMessage();
+    })
+  }
+
+  onChatRoomChanged(){
+    this.isRefreshing = true;
+    this.chatService.ngUnsubscribe.next();
+    if(this.chatRoomId){
+      this.chatService.unsubscribeChatRoomSocket(this.chatRoomId);
+    }
+    this.messages = [];
+    this.cdr.markForCheck();
   }
 
   retrievePreviousMessage=(pageNo=0)=>{
@@ -137,7 +151,5 @@ export class ChatAppComponent implements OnInit {
         }
         this.cdr.markForCheck();
       })
-
-
   }
 }
